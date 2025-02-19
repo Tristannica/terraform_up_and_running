@@ -2,37 +2,39 @@ provider "aws" {
     region = "us-east-2"
 }
 
-# LAUNCH INSTANCE
-resource "aws_instance" "tf_example" {
+# SINGLE INSTANCE
+resource "aws_instance" "tf-example" {
     ami = "ami-0fb653ca2d3203ac1"
     instance_type = "t2.micro"
     vpc_security_group_ids = [aws_security_group.instance.id]
 }
 
-# LAUNCH ASG
-resource "aws_launch_configuration" "tf_example" {
+# ASG LAUNCH TEMPLATE
+resource "aws_launch_template" "tf-example" {
+    name_prefix = "tf-example-"
     image_id = "ami-0fb653ca2d3203ac1"
     instance_type = "t2.micro"
-    security_groups = [aws_security_group.instance.id]
+   
+    vpc_security_group_ids = [aws_security_group.instance.id]
 
-    user_data = <<-EOF
-                #!/bin/bash
-                echo "Hello, World" > index.html
-                nohup busybox httpd -f -p ${var.server_port} &
-                EOF
+    user_data = filebase64("${path.module}/user_data.sh")
 
     lifecycle {
       create_before_destroy = true
     }
 }
 
-# LAUNCH ASG
-resource "aws_autoscaling_group" "tf_example" {
-    launch_configuration = aws_launch_configuration.tf_example.name
+# Auto Scaling Group (ASG) using Launch Template
+resource "aws_autoscaling_group" "tf-example" {
     vpc_zone_identifier  = data.aws_subnets.default.ids
 
     min_size = 2
     max_size = 10
+
+    launch_template {
+      id        = aws_launch_template.tf-example.id
+      version   = "$Latest"
+    }
 
     tag {
       key                 = "Name"
@@ -68,7 +70,7 @@ data "aws_subnets" "default" {
   }
 }
 
-output "public_ip" {
-  value         = aws_instance.tf_example.public_ip
-  description   = "The public IP address of the instance"
-}
+# output "public_ip" {
+#   value         = aws_instance.tf-example.public_ip
+#   description   = "The public IP address of the instance"
+# }
