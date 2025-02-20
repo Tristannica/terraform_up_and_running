@@ -2,17 +2,17 @@ provider "aws" {
     region = "us-east-2"
 }
 
-# SINGLE INSTANCE
-resource "aws_instance" "tf-example" {
-    ami = "ami-0fb653ca2d3203ac1"
-    instance_type = "t2.micro"
-    vpc_security_group_ids = [aws_security_group.instance.id]
-}
+# # SINGLE INSTANCE
+# resource "aws_instance" "tf-example" {
+#     ami                    = "ami-0fb653ca2d3203ac1"
+#     instance_type          = "t2.micro"
+#     vpc_security_group_ids = [aws_security_group.instance.id]
+# }
 
 # ASG LAUNCH TEMPLATE
 resource "aws_launch_template" "tf-example" {
-    name_prefix = "tf-example-"
-    image_id = "ami-0fb653ca2d3203ac1"
+    name_prefix   = "tf-example-"
+    image_id      = "ami-0fb653ca2d3203ac1"
     instance_type = "t2.micro"
    
     vpc_security_group_ids = [aws_security_group.instance.id]
@@ -57,7 +57,7 @@ resource "aws_lb" "tf-example" {
 # Listener for ALB
 resource "aws_lb_listener" "http" {
     load_balancer_arn   = aws_lb.tf-example.arn
-    port                = 80
+    port                = var.server_port
     protocol            = "HTTP"
 
     default_action {
@@ -111,16 +111,16 @@ resource "aws_security_group" "alb" {
   name = "terraform-example-alb"
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = var.server_port
+    to_port     = var.server_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }

@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "Hello, World" > index.html
+echo "Hello, World" > /var/www/html/index.html
 nohup busybox httpd -f -p ${var.server_port} &
